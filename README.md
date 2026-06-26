@@ -42,10 +42,12 @@ Reading "Attention Is All You Need" raised more questions than it answered. Buil
 
 **Sample translations after 15 epochs:**
 
-DE: ein mann spielt gitarre .        → EN: a man playing a guitar
-DE: eine frau läuft durch den park . → EN: a woman is walking through the park.
-DE: zwei kinder spielen im garten .  → EN: two children play in the garden.
-DE: ein hund rennt über das feld .   → EN: a dog runs through the field.
+| German (Input) | Model Output | Ground Truth |
+|---|---|---|
+| ein mann spielt gitarre . | a man playing a guitar | a man is playing a guitar |
+| eine frau läuft durch den park . | a woman is walking through the park . | a woman is walking through the park |
+| zwei kinder spielen im garten . | two children play in the garden . | two children are playing in the garden |
+| ein hund rennt über das feld . | a dog runs through the field . | a dog is running across the field |
 
 ### Ablation Studies
 
@@ -69,6 +71,9 @@ See `ablation_results/results.json` and `notebooks/ablation_studies.ipynb` for f
 
 ### Ablation Studies
 ![Ablation Studies](ablation_plots.png)
+
+### Training Curves
+![Training Curves](training_curves.png)
 
 ## Project structure
 
