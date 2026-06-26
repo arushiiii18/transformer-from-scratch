@@ -72,7 +72,7 @@ with it. Two different jobs — both necessary.
 ---
 
 ## What I'd do differently with more compute
-- Train for 20+ epochs (only 2 completed on CPU)
+- Train for more epochs with a larger model — current run: 15 epochs on GPU (RTX 2050), best val loss 2.84 at epoch 12.
 - Use beam search decoding instead of greedy
 - BPE tokenization instead of whitespace split
 - Larger model: d_model=512, N=6 as in paper
