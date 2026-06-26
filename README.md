@@ -1,4 +1,8 @@
-# Transformer from Scratch using Pytorch
+# Transformer from Scratch in Pytorch
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.6-orange)
+![Tests](https://img.shields.io/badge/Tests-12%20passed-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 A complete, paper-accurate implementation of the Transformer architecture
 from ["Attention Is All You Need"](https://arxiv.org/abs/1706.03762) (Vaswani et al., 2017).
@@ -8,7 +12,7 @@ from ["Attention Is All You Need"](https://arxiv.org/abs/1706.03762) (Vaswani et
 ---
 ## Motivation
 
-This project was built to understand the Transformer architecture from first principles by implementing every component described in the original paper : without relying on high-level libraries such as HuggingFace or PyTorch's built-in Transformer modules.
+This project was built to understand the Transformer architecture from first principles by implementing every component described in the original paper without relying on high-level libraries such as HuggingFace or PyTorch's built-in Transformer modules.
 
 Reading "Attention Is All You Need" raised more questions than it answered. Building it resolved them.
 
@@ -63,6 +67,9 @@ See `ablation_results/results.json` and `notebooks/ablation_studies.ipynb` for f
 
 ## Visualizations
 
+### Training Curves
+![Training Curves](training_curves.png)
+
 ### Positional Encoding
 ![Positional Encoding](positional_encoding.png)
 
@@ -72,32 +79,38 @@ See `ablation_results/results.json` and `notebooks/ablation_studies.ipynb` for f
 ### Ablation Studies
 ![Ablation Studies](ablation_plots.png)
 
-### Training Curves
-![Training Curves](training_curves.png)
 
-## Project structure
+## Project Structure
 
 ```
-transformer-from-scratch/
+transformer-from-scratch-pytorch/
 ├── layers/
-│   ├── attention.py          # Scaled Dot-Product Attention
-│   ├── multihead_attention.py
-│   ├── positional_encoding.py
-│   ├── feed_forward.py
-│   └── sublayer.py           # Residual + LayerNorm
-├── encoder.py
-├── decoder.py
-├── transformer.py
-├── train.py                  # Training loop, masks, LR schedule
-├── inference.py              # Greedy decoding
-├── data.py                   # Custom dataset, vocab, dataloader
+│   ├── __init__.py
+│   ├── attention.py           # Scaled Dot-Product Attention
+│   ├── multihead_attention.py # Multi-Head Attention
+│   ├── positional_encoding.py # Sinusoidal Positional Encoding
+│   ├── feed_forward.py        # Position-wise FFN
+│   └── sublayer.py            # Residual + LayerNorm wrapper
 ├── tests/
-│   ├── test_attention.py
+│   ├── test_attention.py      # 12 unit tests
 │   └── test_model.py
 ├── notebooks/
 │   ├── attention_visualization.ipynb
-│   └── positional_encoding.ipynb
-└── NOTES.md                  # Implementation decisions explained
+│   ├── positional_encoding.ipynb
+│   ├── ablation_studies.ipynb
+│   └── plot_curves.py
+├── ablation_results/
+│   └── results.json
+├── encoder.py
+├── decoder.py
+├── transformer.py
+├── train.py                   # Training loop, LR schedule, label smoothing
+├── inference.py               # Greedy decoding
+├── data.py                    # Custom vocab, dataset, dataloader
+├── ablation.py                # Ablation experiment runner
+├── requirements.txt
+├── NOTES.md                   # Implementation decisions explained
+└── README.md
 ```
 
 ---
@@ -105,18 +118,33 @@ transformer-from-scratch/
 ## Setup
 
 ```bash
-git clone https://github.com/arushiiii18/transformer-from-scratch
-cd transformer-from-scratch
-python -m venv venv
-venv\Scripts\activate        # Windows
+git clone https://github.com/arushiiii18/transformer-from-scratch-pytorch
+cd transformer-from-scratch-pytorch
+py -3.11 -m venv venv311
+venv311\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-Download Multi30k data:
+**Download Multi30k dataset:**
 ```bash
-python -c "from data import build_dataloaders; build_dataloaders()"
+python -c "
+import urllib.request, gzip, shutil, os
+os.makedirs('data_files', exist_ok=True)
+files = {
+    'train.de': 'https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/train.de.gz',
+    'train.en': 'https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/train.en.gz',
+    'val.de':   'https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/val.de.gz',
+    'val.en':   'https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/val.en.gz',
+}
+for name, url in files.items():
+    urllib.request.urlretrieve(url, f'data_files/{name}.gz')
+    with gzip.open(f'data_files/{name}.gz', 'rb') as f_in:
+        with open(f'data_files/{name}', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    print(f'Downloaded {name}')
+print('Done.')
+"
 ```
-
 ---
 
 ## Run
@@ -138,30 +166,10 @@ python -m pytest tests/ -v
 
 ---
 
-## Key implementation notes
-
-**Why `-inf` masking and not `-1000`?**
-`-inf` guarantees exactly `0` after softmax mathematically. Large negatives
-leak small non-zero values and lose the semantic meaning of "this position
-does not exist."
-
-**Why sinusoidal positional encodings?**
-PE(pos+k) can be represented as a linear function of PE(pos), allowing the
-model to attend by relative position. Also generalizes to sequence lengths
-unseen during training.
-
-**Why feed-forward after attention?**
-Attention decides *what* information to gather. The FFN decides *what to do*
-with it. Two different jobs — both necessary.
-
-See `NOTES.md` for full implementation reasoning.
-
----
-
 ## What I Learned
 
-- Attention already existed before Transformers — the novelty was making it the primary computational mechanism, not an add-on to RNNs.
-- Multi-head attention isn't repetition — each head specializes in different linguistic relationships simultaneously.
+- Transformers didn't invent attention—they made attention the primary computational mechanism instead of a supporting component for recurrence.
+- Multi-head attention isn't repetition, each head specializes in different linguistic relationships simultaneously.
 - Feed-forward layers have a distinct job from attention: attention decides *what* to gather, FFN decides *what to do* with it.
 - Positional encodings exist specifically because removing recurrence broke the model's only way of knowing word order — every design choice creates a new problem.
 - Ablation studies showed why each component exists rather than assuming design choices were arbitrary.
@@ -169,3 +177,11 @@ See `NOTES.md` for full implementation reasoning.
 ## References
 
 - Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762), 2017
+
+## Citation
+
+If you found this implementation helpful, please consider starring the repository.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

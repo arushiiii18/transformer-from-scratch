@@ -43,6 +43,25 @@ no HuggingFace, no shortcuts.
 - Causal mask: torch.tril — prevents decoder from seeing future tokens
 - Both ANDed together for decoder self-attention
 
+## Key implementation notes
+
+**Why `-inf` masking and not `-1000`?**
+`-inf` guarantees exactly `0` after softmax mathematically. Large negatives
+leak small non-zero values and lose the semantic meaning of "this position
+does not exist."
+
+**Why sinusoidal positional encodings?**
+PE(pos+k) can be represented as a linear function of PE(pos), allowing the
+model to attend by relative position. Also generalizes to sequence lengths
+unseen during training.
+
+**Why feed-forward after attention?**
+Attention decides *what* information to gather. The FFN decides *what to do*
+with it. Two different jobs — both necessary.
+
+
+---
+
 ### Training
 - Adam with β1=0.9, β2=0.98, ε=1e-9 — paper exact values
 - Warmup schedule: lr increases linearly for 4000 steps, then decays
