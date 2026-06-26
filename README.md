@@ -164,6 +164,12 @@ python inference.py
 python -m pytest tests/ -v
 ```
 
+**Pretrained checkpoint:**
+Not included in the repo. Train from scratch — takes ~8 minutes on a modern GPU:
+```bash
+python train.py
+```
+Best checkpoint is saved automatically to `checkpoints/best_model.pt`.
 ---
 
 ## What I Learned
